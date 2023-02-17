@@ -1,16 +1,5 @@
 #Customer Segmentation with RFM
 
-#BUSINESS PROBLEM
-#Flo, an online and offline shoe store, wants to segment its customers and determine its marketing strategies according to these segments.
-#For this purpose
-#behavior of customers will be defined and this
-#groups will be formed according to clusters in behaviors.
-
-#DATASET STORY
-#The dataset includes Flo's recent purchases from OmniChannel (both online and offline shoppers) in 2020 - 2021.
-#It consists of information obtained from the past shopping behavior of customers.
-
-# FLO Customer Segmentation with RFM Analysis
 # master_id: Unique customer id
 # order_channel:Which platform used for shopping (Android, ios, Desktop, Mobile)
 # last_order_channel: Platform used for the last shopping activity
@@ -35,17 +24,17 @@ pd.set_option('display.float_format', lambda x : '%.3f' %x )
 #STEP1
 df_ = pd.read_csv("C:/Users/caspe/Desktop/VBO/week4/flo_data_20k.csv")
 flo_data=df_.copy()
-#STEP2
+
 flo_data.head(10)
 flo_data.columns
 flo_data.shape
 flo_data.describe().T
 flo_data.isnull().sum()
 flo_data.info()
-#adım3
+
 flo_data["order_num_total"] = flo_data["order_num_total_ever_online"] + flo_data["order_num_total_ever_offline"]
 flo_data["customer_value_total"] = flo_data["customer_value_total_ever_offline"] + flo_data["customer_value_total_ever_online"]
-#adım4
+
 flo_data.dtypes
 
 flo_data["last_order_date"]=pd.to_datetime(flo_data["last_order_date"])
@@ -55,21 +44,18 @@ flo_data["last_order_date_offline"]=pd.to_datetime(flo_data["last_order_date_off
 flo_data.dtypes
 flo_data.info()
 
-#adım5
+
 flo_data.groupby("order_channel").agg({"master_id":"count",
                                  "order_num_total":"sum",
                                  "customer_value_total":"sum"})
 
-#adım6
 
 flo_data.groupby("master_id").agg({"customer_value_total":"sum"}).sort_values("customer_value_total",ascending=False).head(10)
 
 
-#adım7
 flo_data.groupby("master_id").agg({"order_num_total":"sum"}).sort_values("order_num_total",ascending=False).head(10)
 
 
-#adım8
 
 def data_prep(dataframe):
     dataframe["order_num_total"] = dataframe["order_num_total_ever_online"] + dataframe["order_num_total_ever_offline"]
@@ -80,7 +66,6 @@ def data_prep(dataframe):
 
 
 
-#Görev 2
 
 flo_data["last_order_date"].max()
 today_date = dt.datetime(2021,6,1)
@@ -96,8 +81,6 @@ rfm.head()
 
 
 
-#Görev3
-
 rfm["recency_scores"]=pd.qcut(rfm['recency'],5,labels=[5,4,3,2,1])
 rfm["monetary_scores"]=pd.qcut(rfm['monetary'],5,labels=[1,2,3,4,5])
 rfm["frequency_scores"]=pd.qcut(rfm['frequency'].rank(method="first"),5,labels=[1,2,3,4,5])
@@ -105,7 +88,6 @@ rfm["RF SCORE"] = (rfm['recency_scores'].astype(str)+
                   rfm['frequency_scores'].astype(str))
 rfm.head()
 
-#Görev4
 seg_map = {
     r'[1-2][1-2]' : 'hibernating',
     r'[1-2][3-4]': 'at_Risk',
@@ -121,17 +103,16 @@ seg_map = {
 }
 rfm['segment']= rfm['RF SCORE'].replace(seg_map,regex=True)
 
-#Görev5
-#adım 1 :
+
 
 rfm[["segment", "recency", "frequency", "monetary"]].groupby("segment").agg(["mean", "count"])
 
-#adım2-
-# a)
+
+
 new_brand_=rfm.loc[(rfm['segment']=='champions') | (rfm['segment']=='loyal_customers'),'customer_id']
 flo_data.loc[flo_data['interested_in_categories_12'].str.contains('KADIN'),'master_id']
 flo_data.loc[flo_data['master_id'].isin(new_brand_.values)]
-#b)
+
 
 target_segments_customer_ids = rfm[rfm["segment"].isin(["cant_loose","hibernating","new_customers"])]["customer_id"]
 cust_ids =flo_data[(flo_data["master_id"].isin(target_segments_customer_ids)) & ((flo_data["interested_in_categories_12"].str.contains("ERKEK"))|(flo_data["interested_in_categories_12"].str.contains("COCUK")))]["master_id"]
